@@ -322,7 +322,8 @@ def importPartFromFile(
             newObj.ViewObject.Transparency = 0 # import assembly first time as non transparent.
 
 
-    lcsList = a2p_lcs_support.getListOfLCS(doc,importDoc)
+    #lcsList = a2p_lcs_support.getListOfLCS(doc,importDoc)
+    lcsList = a2p_lcs_support.getListOfDockRefs(doc,importDoc)
     
 
     if not importDocIsOpen:
@@ -340,8 +341,8 @@ def importPartFromFile(
             lcsGroup = doc.addObject( "Part::FeaturePython", str(lcsGroupObjectName.encode('utf-8')) )    # works on Python 3.6.5
         lcsGroup.Label = lcsGroupLabel
     
-        proxy = a2p_lcs_support.LCS_Group(lcsGroup)
-        vp_proxy = a2p_lcs_support.VP_LCS_Group(lcsGroup.ViewObject)
+        a2p_lcs_support.LCS_Group(lcsGroup)
+        a2p_lcs_support.VP_LCS_Group(lcsGroup.ViewObject)
         
         for lcs in lcsList:
             lcsGroup.addObject(lcs)

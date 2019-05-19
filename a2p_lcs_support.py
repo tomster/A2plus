@@ -22,6 +22,7 @@
 
 import FreeCAD
 import FreeCADGui
+import a2p_matingReference
 
 
 #==============================================================================
@@ -104,3 +105,24 @@ def getListOfLCS(targetDoc,sourceDoc):
             newLCS.setEditorMode('Placement', 1)  #read-only # KBWBE: does not work...
             lcsOut.append(newLCS)
     return lcsOut
+#==============================================================================
+def getListOfDockRefs(targetDoc,sourceDoc):
+    mateRefs = []
+    for sourceOb in sourceDoc.Objects:
+        if (
+                sourceOb.Name.startswith("Local_CS") or
+                sourceOb.Name.startswith("App__Placement") or
+                sourceOb.Name.startswith("a2pLCS") or
+                sourceOb.Name.startswith("PartDesign__CoordinateSystem")
+                ):
+            mr = targetDoc.addObject("Part::FeaturePython","matingRef")
+            a2p_matingReference.a2p_MatingReference(mr)
+            a2p_matingReference.VP_a2p_MatingReference(mr.ViewObject)
+            
+            pl = sourceOb.getGlobalPlacement()
+            mr.Placement = pl
+            mr.setEditorMode('Placement', 1)  #read-only # KBWBE: does not work...
+            mateRefs.append(mr)
+    if len(mateRefs) > 0:
+        targetDoc.recompute()
+    return mateRefs
