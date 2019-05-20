@@ -115,7 +115,7 @@ def getListOfDockRefs(targetDoc,sourceDoc):
                 sourceOb.Name.startswith("a2pLCS") or
                 sourceOb.Name.startswith("PartDesign__CoordinateSystem")
                 ):
-            mr = targetDoc.addObject("Part::FeaturePython","matingRef")
+            mr = targetDoc.addObject("Part::FeaturePython","a2p_matingRef")
             a2p_matingReference.a2p_MatingReference(mr)
             a2p_matingReference.VP_a2p_MatingReference(mr.ViewObject)
             

@@ -1,6 +1,6 @@
 #***************************************************************************
 #*                                                                         *
-#*   Copyright (c) 2018 kbwbe                                              *
+#*   Copyright (c) 2019 kbwbe                                              *
 #*                                                                         *
 #*                                                                         *
 #*   This program is free software; you can redistribute it and/or modify  *
@@ -38,27 +38,81 @@ class a2p_MatingReference(object):
     def setProperties(self,obj):
         propList = obj.PropertiesList
         if not "rigid" in propList:
-            obj.addProperty("App::PropertyString", "rigid", "a2p_dockRef")
+            obj.addProperty("App::PropertyString", "rigid", "a2p_matingRef")
             obj.setEditorMode('rigid', 1)
         if not "size" in propList:
-            obj.addProperty("App::PropertyFloat", "size","a2p_dockRef")
-            obj.size = 10.0 #default size
+            obj.addProperty("App::PropertyFloat", "size","a2p_matingRef")
+            obj.size = 5.0 #default size
         self.type = "a2p_constraintDockRef"
         
     def onDocumentRestored(self,obj):
         a2p_MatingReference.setProperties(self,obj)
         
     def execute(self, obj):
+        s = obj.size
+
         v0 = FreeCAD.Vector(0.0,0.0,0.0)
-        vx = FreeCAD.Vector(obj.size,0.0,0.0)
-        vy = FreeCAD.Vector(0.0,obj.size,0.0)
-        vz = FreeCAD.Vector(0.0,0.0,obj.size)
+        vx = FreeCAD.Vector(s,0.0,0.0)
+        vy = FreeCAD.Vector(0.0,s,0.0)
+        vz = FreeCAD.Vector(0.0,0.0,s)
         
-        obj.Shape = Part.Shape(
+        axisShape = Part.Shape(
             [
                 Part.LineSegment(v0,vx),
                 Part.LineSegment(v0,vy),
                 Part.LineSegment(v0,vz)
+                ]
+            )
+
+        
+        xy_v0 = FreeCAD.Vector(s*0.2,s*0.2,0.0)
+        xy_v1 = FreeCAD.Vector(s,s*0.2,0.0)
+        xy_v2 = FreeCAD.Vector(s,s,0.0)
+        xy_v3 = FreeCAD.Vector(s*0.2,s,0.0)
+        
+        xy_l0 = Part.LineSegment(xy_v0, xy_v1)
+        xy_l1 = Part.LineSegment(xy_v1, xy_v2)
+        xy_l2 = Part.LineSegment(xy_v2, xy_v3)
+        xy_l3 = Part.LineSegment(xy_v3, xy_v0)
+        
+        s1 = Part.Shape([xy_l0, xy_l1, xy_l2, xy_l3])
+        w = Part.Wire(s1.Edges)
+        fxy = Part.Face(w)
+        
+        yz_v0 = FreeCAD.Vector(0.0,s*0.2,s*0.2)
+        yz_v1 = FreeCAD.Vector(0.0,s,s*0.2)
+        yz_v2 = FreeCAD.Vector(0.0,s,s)
+        yz_v3 = FreeCAD.Vector(0.0,s*0.2,s)
+        
+        yz_l0 = Part.LineSegment(yz_v0, yz_v1)
+        yz_l1 = Part.LineSegment(yz_v1, yz_v2)
+        yz_l2 = Part.LineSegment(yz_v2, yz_v3)
+        yz_l3 = Part.LineSegment(yz_v3, yz_v0)
+        
+        s2 = Part.Shape([yz_l0, yz_l1, yz_l2, yz_l3])
+        w = Part.Wire(s2.Edges)
+        fyz = Part.Face(w)
+        
+        xz_v0 = FreeCAD.Vector(s*0.2,0.0,s*0.2)
+        xz_v1 = FreeCAD.Vector(s,0.0,s*0.2)
+        xz_v2 = FreeCAD.Vector(s,0.0,s)
+        xz_v3 = FreeCAD.Vector(s*0.2,0.0,s)
+        
+        xz_l0 = Part.LineSegment(xz_v0, xz_v1)
+        xz_l1 = Part.LineSegment(xz_v1, xz_v2)
+        xz_l2 = Part.LineSegment(xz_v2, xz_v3)
+        xz_l3 = Part.LineSegment(xz_v3, xz_v0)
+        
+        s3 = Part.Shape([xz_l0, xz_l1, xz_l2, xz_l3])
+        w = Part.Wire(s3.Edges)
+        fxz = Part.Face(w)
+        
+        obj.Shape = Part.makeCompound(
+            [
+                axisShape,
+                fxy,
+                fyz,
+                fxz
                 ]
             )
         
