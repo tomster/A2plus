@@ -32,10 +32,7 @@ from a2p_MuxAssembly import (
     muxAssemblyWithTopoNames
     )
 from a2p_viewProviderProxies import *
-from a2p_versionmanagement import (
-    SubAssemblyWalk, 
-    A2P_VERSION
-    )
+from a2p_versionmanagement import A2P_VERSION
 import a2p_solversystem
 from a2plib import (
     appVersionStr,
@@ -460,6 +457,45 @@ Check your settings of A2plus preferences.
 
 
 FreeCADGui.addCommand('a2p_ImportShapeReferenceCommand',a2p_ImportShapeReferenceCommand())
+
+#==============================================================================
+toolTip = \
+'''
+Restore transparency to
+active document objects
+'''
+
+class a2p_Restore_Transparency_Command():
+
+    def GetResources(self):
+        return {'Pixmap'  : a2plib.pathOfModule()+'/icons/a2p_Restore_Transparency.svg',
+                'Accel' : "Shift+T", # a default shortcut (optional)
+                'MenuText': "Restore transparency to active document objects",
+                'ToolTip' : toolTip
+                }
+
+    def Activated(self):        
+        doc = FreeCAD.ActiveDocument
+        if doc is None:
+            FreeCAD.Console.Print("No active document found")
+            return
+        else:
+            for obj in doc.Objects:
+                if hasattr (obj, 'ViewObject'):
+                    if hasattr (obj.ViewObject, 'Transparency'):
+                        if obj.ViewObject.Transparency < 100:
+                            transparency = obj.ViewObject.Transparency
+                            obj.ViewObject.Transparency = transparency + 1
+                            obj.ViewObject.Transparency = transparency
+        return
+
+    def IsActive(self):
+        doc = FreeCAD.activeDocument()
+        if doc is None: return False
+        return True
+
+FreeCADGui.addCommand('a2p_Restore_Transparency',a2p_Restore_Transparency_Command())
+
 #==============================================================================
 toolTip = \
 '''
