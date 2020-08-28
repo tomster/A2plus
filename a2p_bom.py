@@ -125,9 +125,9 @@ def createPartList(
             dc = FreeCAD.openDocument(linkedSource)
             for object in (dc.findObjects("Part::Feature")):
                    bb.add( object.Shape.BoundBox )
-            partInformation[-2] = str(bb.ZLength)
-            partInformation[-3] = str(bb.YLength)
-            partInformation[-4] = str(bb.XLength)
+            partInformation[-2] = "{:0.0f}".format(bb.ZLength)
+            partInformation[-3] = "{:0.0f}".format(bb.YLength)
+            partInformation[-4] = "{:0.0f}".format(bb.XLength)
             FreeCAD.closeDocument(dc.Label)
             # #########################################################
             # put information to dict and count usage of sourcefiles..
