@@ -117,7 +117,7 @@ def createPartList(
                             if idx < len(PARTLIST_COLUMN_NAMES): # don't read further!
                                 partInformation[idx] = cells[addr]
             # last entry of partinformations is reserved for filename
-            partInformation[-1] = os.path.split(linkedSource)[1] #without complete path...
+            partInformation[-1] = os.path.splitext(os.path.split(linkedSource)[1])[0] #without complete path...
             # #########################################################
             # add dimensions from the overall bounding box of the file
             # in the last 3 fields before the filename
