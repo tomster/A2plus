@@ -35,5 +35,11 @@ PARTLIST_COLUMN_NAMES = [
     u'SUPPLIER',
     u'SUPP.IDENTNO',
     u'SUPP.DESRCIPTION',
+    u'SUPP.URL',
+    u'SUPP.PRICE',
+    u'SUPP.PRICEUNIT',
+    u'(DIMENSION X)',
+    u'(DIMENSION Y)',
+    u'(DIMENSION Z)',
     u'(FILENAME)'
     ]
