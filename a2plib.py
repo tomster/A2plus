@@ -33,6 +33,7 @@ import sys
 import copy
 import platform
 import numpy
+from pivy import coin
 
 PYVERSION =  sys.version_info[0]
 
@@ -52,13 +53,11 @@ SIMULATION_STATE = False
 
 SAVED_TRANSPARENCY = []
 
-DEBUGPROGRAM = 1
 
 path_a2p = os.path.dirname(__file__)
 path_a2p_resources = os.path.join( path_a2p, 'GuiA2p', 'Resources', 'resources.rcc')
 resourcesLoaded = QtCore.QResource.registerResource(path_a2p_resources)
 assert resourcesLoaded
-
 
 
 wb_globals = {}
@@ -76,7 +75,21 @@ A2P_DEBUG_1         = 1
 A2P_DEBUG_2         = 2
 A2P_DEBUG_3         = 3
 
-A2P_DEBUG_LEVEL = A2P_DEBUG_NONE
+#===================================================
+# do debug settings here:
+#===================================================
+A2P_DEBUG_LEVEL = A2P_DEBUG_NONE    #normal: A2P_DEBUG_NONE
+GRAPHICALDEBUG = False               #normal: False
+
+# for debug purposes
+# 0:normal
+# 1:one step in each worklist
+# 2:one step in first worklist
+SOLVER_ONESTEP = 0                  #normal: 0
+#===================================================
+solver_debug_objects = [] #collect solver 3d output for later removal
+#===================================================
+
 
 PARTIAL_SOLVE_STAGE1 = 1    #solve all rigid fully constrained to tempfixed rigid, enable only involved dep, then set them as tempfixed
 CONSTRAINT_DIALOG_REF = None
@@ -121,6 +134,79 @@ else:
 
 
 
+#------------------------------------------------------------------------------
+def drawDebugVectorAt(position,direction,rgbColor):
+    '''
+    function draws a vector directly to 3D view using pivy/Coin
+    
+    expects position and direction as Base.vector type
+    color as tuple like (1,0,0)
+    '''
+    color = coin.SoBaseColor()
+    color.rgb = rgbColor
+
+    # Line style.
+    lineStyle = coin.SoDrawStyle()
+    lineStyle.style = coin.SoDrawStyle.LINES
+    lineStyle.lineWidth = 2
+
+    points=coin.SoCoordinate3()
+    lines=coin.SoLineSet()
+
+    startPoint = position.x,position.y,position.z
+    ep = position.add(direction)
+    endPoint = ep.x,ep.y,ep.z
+    
+    points.point.values = (startPoint,endPoint)
+    
+    #create and feed data to separator
+    sep=coin.SoSeparator()
+    sep.addChild(points)
+    sep.addChild(color)
+    sep.addChild(lineStyle)    
+    sep.addChild(lines)    
+    
+    #add separator to sceneGraph
+    sg = FreeCADGui.ActiveDocument.ActiveView.getSceneGraph()
+    sg.addChild(sep)
+    
+    solver_debug_objects.append(sep)
+    
+#------------------------------------------------------------------------------
+def isGlobalVisible(ob):
+    '''
+    Part containers do not propagate visibility to all its childs.
+    
+    This function checks, whether at least one Part container is invisible in tree
+    upwards direction.
+    
+    This function returns always true, except one Part- or Group-Container
+    in tree-structure above is invisible
+    '''
+    result = True
+
+    #remove constraints from the InList
+    inList = []
+    for i in ob.InList:
+        if isA2pConstraint(i): continue
+        inList.append(i)
+    
+    if len(inList) == 0:
+        if (
+                ob.Name.startswith('Group') or
+                ob.Name.startswith('Part')
+                ):
+            return ob.ViewObject.Visibility # break the recursion
+    elif len(inList) == 1:
+        if (
+                inList[0].Name.startswith('Group') or
+                inList[0].Name.startswith('Part')
+                ):
+            if inList[0].ViewObject.Visibility == False:
+                return False # break instantly
+            # do search in tree upwards
+            result = isGlobalVisible(inList[0])
+    return result
 #------------------------------------------------------------------------------
 def to_bytes(tx):
     if PYVERSION > 2:
@@ -899,7 +985,7 @@ def getAxis(obj, subElementName):
                 centers = numpy.array([a.Center for a in arcs])
                 sigma = numpy.std( centers, axis=0 )
                 if max(sigma) < 10**-6: #then circular curce
-                    axis = a.Axis
+                    axis = arcs[0].Axis
             if all(isLine(a) for a in arcs):
                 lines = arcs
                 D = numpy.array([L.tangent(0)[0] for L in lines]) #D(irections)
@@ -939,7 +1025,6 @@ def isA2pPart(obj):
 def isEditableA2pPart(obj):
     if not isA2pPart(obj): return False
     if hasattr(obj,"sourceFile"):
-        if obj.sourceFile == "converted": return False
         if obj.sourceFile == "": return False
     return True
 #------------------------------------------------------------------------------

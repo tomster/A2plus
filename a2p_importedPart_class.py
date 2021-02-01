@@ -55,6 +55,8 @@ class Proxy_importPart:
             obj.addProperty("App::PropertyFile", "sourceFile", "importPart")
         if not "sourcePart" in propList:
             obj.addProperty("App::PropertyString", "sourcePart", "importPart")
+        if not "localSourceObject" in propList:
+            obj.addProperty("App::PropertyString", "localSourceObject", "importPart")
         if not "muxInfo" in propList:
             obj.addProperty("App::PropertyStringList","muxInfo","importPart")
         if not "timeLastImport" in propList:
@@ -67,6 +69,11 @@ class Proxy_importPart:
         if not "updateColors" in propList:
             obj.addProperty("App::PropertyBool","updateColors","importPart")
             obj.updateColors = True
+        if a2plib.GRAPHICALDEBUG == True and not "debugmode" in propList:
+            obj.addProperty("App::PropertyBool","debugmode","importPart")
+            obj.debugmode = False
+        if a2plib.GRAPHICALDEBUG == False and "debugmode" in propList:
+            obj.removeProperty("debugmode")
 
         self.type = "a2p_importPart"
 
